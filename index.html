@@ -1,13 +1,32 @@
-<!doctype html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Vite + React</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Medical Chatbot</title>
+</head>
+<body>
+  <h1>Medical Intake Chatbot</h1>
+  <textarea id="input" rows="5" cols="60" placeholder="Enter your symptoms or medical concerns..."></textarea><br>
+  <button onclick="sendPrompt()">Submit</button>
+  <h3>Response:</h3>
+  <div id="response" style="white-space: pre-wrap;"></div>
+  <div class="text-red-500 font-bold text-xl">If this is red and bold, Tailwind is working!</div>
+
+
+  <script>
+    async function sendPrompt() {
+      const input = document.getElementById("input").value;
+      const responseDiv = document.getElementById("response");
+      responseDiv.textContent = "Thinking...";
+
+      const res = await fetch("http://localhost:8000/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: input })
+      });
+
+      const data = await res.json();
+      responseDiv.textContent = data.response || "No response.";
+    }
+  </script>
+</body>
 </html>

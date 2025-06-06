@@ -1,12 +1,90 @@
-# React + Vite
+# 🩺 Patient History Chatbot
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An AI-powered chatbot that records a patient's full history before an initial consultation. Built for the AI Futures Hackathon.
 
-Currently, two official plugins are available:
+---
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## 🚀 How to Run the Project (Full Stack Setup)
 
-## Expanding the ESLint configuration
+### ✅ Prerequisites
+Make sure you have these installed:
+- [Node.js & npm](https://nodejs.org)
+- Python 3.10+ (Anaconda okay)
+- [Ollama](https://ollama.com) installed locally
+- DeepSeek model installed:
+  ```bash
+  ollama pull deepseek-r1:8b
+  ```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+---
+
+### ▶️ 1. Start Ollama (LLM Server)
+
+In **Terminal 1**:
+```bash
+ollama serve
+```
+> 🧠 This starts the local LLM server the chatbot uses to generate responses.
+
+---
+
+### ▶️ 2. Start FastAPI Backend
+
+In **Terminal 2**:
+```bash
+cd /Users/vishal/Career/AI-Futures-Hackathon
+uvicorn main:app --reload
+```
+> 📡 Runs backend server at http://localhost:8000
+
+If you get an “Address already in use” error:
+```bash
+lsof -i :8000
+kill -9 <PID>
+```
+
+---
+
+### ▶️ 3. Start React Frontend (Chat UI)
+
+In **Terminal 3**:
+```bash
+cd /Users/vishal/Career/AI-Futures-Hackathon/AI-futures-hackathon
+npm install      # Only needed once
+npm run dev
+```
+> 🌐 Access the frontend at http://localhost:5173
+
+---
+
+### 🧠 What Each Terminal Does
+
+| Terminal | Command                        | Purpose                         |
+|----------|--------------------------------|---------------------------------|
+| #1       | `ollama serve`                 | Start LLM model server          |
+| #2       | `uvicorn main:app --reload`    | Start FastAPI backend           |
+| #3       | `npm run dev` (in React folder)| Start React chat UI             |
+
+---
+
+### ✅ Shut Down
+Press `Ctrl + C` in each terminal to stop.
+
+---
+
+## 📁 Folder Structure Overview
+
+```bash
+AI-Futures-Hackathon/
+├── AI-futures-hackathon/       # Frontend React App
+├── main.py                     # FastAPI backend
+├── offload/                    # Ollama offload folder (auto-managed)
+├── Resources/                  # Patient intake PDFs and docs
+├── index.html                  # Legacy HTML if needed
+├── package.json                # Node config
+└── README.md                   # You are here 📄
+```
+
+---
+
+Built by Vishal Vasanthakumar Poornima and team for AI Futures Hackathon ✨
