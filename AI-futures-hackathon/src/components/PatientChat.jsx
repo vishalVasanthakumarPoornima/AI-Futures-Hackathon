@@ -5,7 +5,6 @@ function PatientChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [done, setDone] = useState(false);
-  const [lastBotIndex, setLastBotIndex] = useState(null);
   const [summary, setSummary] = useState("");
   const [docQAActive, setDocQAActive] = useState(false);
   const [docQ, setDocQ] = useState("");
@@ -21,7 +20,6 @@ function PatientChat() {
           { sender: "bot", text: "Welcome to the Patient Intake Chat. Let's get started!" },
           { sender: "bot", text: firstQuestion },
         ]);
-        setLastBotIndex(1);
       } catch (error) {
         console.error("Initialization failed:", error);
         setMessages([{ sender: "bot", text: "Error initializing chat. Please try again later." }]);
@@ -54,11 +52,34 @@ function PatientChat() {
       const botReply = response.data.response;
       const newMessagesWithBot = [...newMessages, { sender: "bot", text: botReply }];
       setMessages(newMessagesWithBot);
-      setLastBotIndex(newMessagesWithBot.length - 1);
       if (response.data.done) setDone(true);
     } catch (error) {
       console.error("Error sending message:", error);
       setMessages((prev) => [...prev, { sender: "bot", text: "There was an error sending your message. Please try again." }]);
+    }
+  };
+
+  const handleFollowUp = async () => {
+    const followUpQ = prompt("What would you like to ask for clarification?");
+    if (!followUpQ) return;
+
+    // Count how many user answers (excluding greetings)
+    const userAnswers = messages.filter((msg) => msg.sender === "user").length - 1;
+
+    try {
+      const res = await axios.post("http://localhost:8000/follow_up", {
+        ref_index: userAnswers,
+        question: followUpQ
+      });
+      const followUpAnswer = res.data.answer;
+      setMessages((prev) => [
+        ...prev,
+        { sender: "user", text: followUpQ },
+        { sender: "bot", text: followUpAnswer }
+      ]);
+    } catch (err) {
+      console.error("Follow-up failed:", err);
+      setMessages((prev) => [...prev, { sender: "bot", text: "Follow-up failed. Please try again." }]);
     }
   };
 
@@ -104,7 +125,7 @@ function PatientChat() {
   const handleDocQuestion = async () => {
     try {
       const res = await axios.post("http://localhost:8000/ask_doc", { question: docQ });
-      setDocA(res.data.answer);
+      setDocA(res.data.summary);
     } catch (err) {
       setDocA("Error retrieving answer.");
       console.error("Document QA failed:", err);
@@ -126,7 +147,7 @@ function PatientChat() {
             ))}
             <div ref={chatEndRef} />
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-2 mt-2">
             <input
               className="flex-1 bg-black/20 text-white border border-white/20 px-4 py-2 rounded-md focus:outline-none"
               value={input}
@@ -139,6 +160,12 @@ function PatientChat() {
               className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
             >
               Send
+            </button>
+            <button
+              onClick={handleFollowUp}
+              className="bg-orange-600 hover:bg-orange-700 text-white px-4 py-2 rounded-md"
+            >
+              Follow-Up
             </button>
           </div>
           {done && (
