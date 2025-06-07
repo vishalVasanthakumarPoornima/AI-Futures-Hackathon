@@ -162,10 +162,22 @@ elif st.session_state.page == "Symptoms":
         
         # Patient history questions
         questions = {
-            "x": st.text_input("x?"),
-            "y": st.text_input("y?"),
-            "z": st.text_input("z?")
+            "full_name": st.text_input("What is your full name?"),
+            "date_of_birth": st.text_input("What is your date of birth?"),
+            "gender": st.text_input("What gender do you identify as?"),
+            "phone_number": st.text_input("What is your phone number?"),
+            "address": st.text_input("What is your current address?"),
+            "allergies": st.text_input("Do you have any allergies? If so, please list them."),
+            "chronic_conditions": st.text_input("Do you have any chronic conditions? If so, please list them."),
+            "current_symptoms": st.text_input("Do you have any current symptoms or concerns?"),
+            "past_surgeries": st.text_input("Have you had any surgeries in the past? If so, please list them."),
+            "past_hospitalizations": st.text_input("Have you had any hospitalizations in the past? If so, please list them."),
+            "current_medications": st.text_input("Do you have any current medications? If so, please list them."),
+            "family_history": st.text_input("Do you have any family history of major illnesses? If so, please list them."),
+            "health_insurance": st.text_input("Do you have health insurance? If so, please provide the name of the provider."),
+            "emergency_contact": st.text_input("What is your emergency contact's name and phone number?")
         }
+        
         
         if st.button("Submit History"):
             # Save all answers that were provided
