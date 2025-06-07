@@ -153,39 +153,82 @@ elif st.session_state.page == "Insurance Info":
         st.rerun()
 
 elif st.session_state.page == "Symptoms":
-    st.header("Symptoms")
-    symptoms = st.text_area("Describe your symptoms:")
-    pain_rating = st.slider("Rate your pain (1-10):", 1, 10)
-    if st.button("Process Symptoms"):
-        with st.spinner("Analyzing symptoms..."):
-            result = process_symptoms(f"{symptoms} (Pain level: {pain_rating}/10)")
+    st.header("How can we help you today?")
+    choice = st.radio("Choose an option:", ["Take Patient History", "Get Diagnosis"])
+    
+    if choice == "Take Patient History":
+        st.subheader("Patient History Questionnaire")
+        patient_history = {}
+        
+        # Patient history questions
+        questions = {
+            "x": st.text_input("x?"),
+            "y": st.text_input("y?"),
+            "z": st.text_input("z?")
+        }
+        
+        if st.button("Submit History"):
+            # Save all answers that were provided
+            patient_history = {q: a for q, a in questions.items() if a}
+            save_patient_info(patient_history, "patient_history.json")
             
-            st.subheader("Analysis Results")
+            # Generate PDF with questions and answers
+            pdf = FPDF()
+            pdf.add_page()
+            pdf.set_font("Arial", size=12)
+            pdf.cell(200, 10, txt="Patient History Report", ln=True, align='C')
+            pdf.ln(10)
             
-            st.write("**Potential Causes:**")
-            for reason in result["reasons"]:
-                st.write(f"• {reason}")
+            for question, answer in patient_history.items():
+                pdf.multi_cell(0, 10, txt=f"Question: {question}?")
+                pdf.multi_cell(0, 10, txt=f"Answer: {answer}")
+                pdf.ln(5)
             
-            st.write("\n**Life-Threatening Assessment:**")
-            st.write(result.get("life_threatening", "Assessment unavailable"))
+            pdf.output("patient_history.pdf")
             
-            risk_rating = result["risk_rating"]
-            st.write("\n**Risk Rating:**", risk_rating, "/10")
-            
-            # Visual risk indicator
-            if risk_rating >= 7:
-                st.error(f"⚠️ High Risk ({risk_rating}/10)")
-            elif risk_rating >= 4:
-                st.warning(f"⚠️ Moderate Risk ({risk_rating}/10)")
-            else:
-                st.success(f"✓ Low Risk ({risk_rating}/10)")
-            
-            if risk_rating >= 8:
-                st.error("🚨 Please seek immediate medical attention!")
-            
-            if st.button("Schedule Appointment"):
-                st.session_state.page = "Appointment"
-                st.rerun()
+            # Provide download button
+            with open("patient_history.pdf", "rb") as file:
+                st.download_button(
+                    label="Download Patient History PDF",
+                    data=file,
+                    file_name="patient_history.pdf",
+                    mime="application/pdf"
+                )
+    
+    else:  # Get Diagnosis
+        st.subheader("Symptom Analysis")
+        symptoms = st.text_area("Describe your symptoms:")
+        pain_rating = st.slider("Rate your pain (1-10):", 1, 10)
+        if st.button("Process Symptoms"):
+            with st.spinner("Analyzing symptoms..."):
+                result = process_symptoms(f"{symptoms} (Pain level: {pain_rating}/10)")
+                
+                st.subheader("Analysis Results")
+                
+                st.write("**Potential Causes:**")
+                for reason in result["reasons"]:
+                    st.write(f"• {reason}")
+                
+                st.write("\n**Life-Threatening Assessment:**")
+                st.write(result.get("life_threatening", "Assessment unavailable"))
+                
+                risk_rating = result["risk_rating"]
+                st.write("\n**Risk Rating:**", risk_rating, "/10")
+                
+                # Visual risk indicator
+                if risk_rating >= 7:
+                    st.error(f"⚠️ High Risk ({risk_rating}/10)")
+                elif risk_rating >= 4:
+                    st.warning(f"⚠️ Moderate Risk ({risk_rating}/10)")
+                else:
+                    st.success(f"✓ Low Risk ({risk_rating}/10)")
+                
+                if risk_rating >= 8:
+                    st.error("🚨 Please seek immediate medical attention!")
+                
+                if st.button("Schedule Appointment"):
+                    st.session_state.page = "Appointment"
+                    st.rerun()
 
 elif st.session_state.page == "Appointment":
     st.header("Schedule Appointment")
