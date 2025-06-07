@@ -18,7 +18,6 @@ function PatientChat() {
         const firstQuestion = "Are you ready to get your medical history recorded?";
         setMessages([
           { sender: "bot", text: "Welcome to the Patient Intake Chat. Let's get started!" },
-          { sender: "bot", text: firstQuestion },
         ]);
       } catch (error) {
         console.error("Initialization failed:", error);
@@ -139,50 +138,56 @@ function PatientChat() {
   };
 
   return (
-    <div className="relative min-h-screen overflow-hidden text-[17px] bg-gradient-to-br from-[#090e1f] to-[#1e1441] font-sans">
-      <div className="relative z-10 flex justify-center items-center p-6">
-        <div className="w-full max-w-4xl p-6 rounded-2xl border border-cyan-300 shadow-[0_0_20px_5px_rgba(0,255,255,0.6)] animate-pulse-slow">
-          <h1 className="text-4xl font-bold text-center mb-6 text-cyan-300">Patient Intake Assistant</h1>
-
-          <div className="h-[500px] overflow-y-auto pr-2 space-y-3">
+    <div className="min-h-screen bg-gradient-to-br from-red-900 via-indigo-900 to-black text-white p-4">
+      <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
+        <div className="flex-1 border rounded-lg p-6 bg-black/30 backdrop-blur-md">
+          <h1 className="text-3xl font-bold mb-4 text-center text-purple-200">Patient Intake Chat</h1>
+          <div className="h-[500px] overflow-y-auto mb-4 pr-2">
             {messages.map((msg, idx) => (
-              <div key={idx} className={`w-full flex transition-transform duration-300 ease-out transform ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] px-5 py-3 rounded-xl text-lg shadow-md break-words ${msg.sender === "user" ? "bg-blue-500 text-white" : "bg-red-700 text-white"}`}>
+              <div key={idx} className={`mb-3 w-full flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
+                <div className={`max-w-[75%] px-4 py-3 rounded-xl text-sm shadow-md break-words ${msg.sender === "user" ? "bg-blue-600 text-white" : "bg-red-800 text-white"}`}>
                   <p>{msg.text}</p>
                 </div>
               </div>
             ))}
             <div ref={chatEndRef} />
           </div>
-
-          <div className="flex gap-2 mt-4">
+          <div className="flex gap-2">
             <input
-              className="flex-1 px-4 py-2 rounded-md border bg-black text-white border-white/20"
+              className="flex-1 bg-black/20 text-white border border-white/20 px-4 py-2 rounded-md focus:outline-none"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type your answer here..."
               onKeyDown={(e) => e.key === "Enter" && sendMessage()}
             />
-            <button onClick={sendMessage} className="bg-purple-600 hover:bg-purple-700 text-white px-5 py-2 rounded-md font-semibold">
+            <button
+              onClick={sendMessage}
+              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
+            >
               Send
             </button>
             <button onClick={handleFollowUp} className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-md font-semibold">
               Follow-Up
             </button>
           </div>
-
           {done && (
-            <div className="mt-6 space-y-4 text-center">
-              <button onClick={downloadPDF} className="bg-green-500 hover:bg-green-600 text-white px-6 py-3 rounded-md font-semibold">
-                📄 Download PDF
+            <div className="mt-4 flex flex-col items-center gap-3">
+              <button
+                onClick={downloadPDF}
+                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+              >
+                📄 Download Patient Summary PDF
               </button>
-              <button onClick={fetchSummary} className="bg-yellow-400 hover:bg-yellow-500 text-black px-6 py-3 rounded-md font-semibold">
-                🧠 Get Summary
+              <button
+                onClick={fetchSummary}
+                className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-md"
+              >
+                🧠 Show Conversation Summary
               </button>
-              <div className="mt-4">
-                <label className="text-sm font-medium">📄 Upload Document:</label>
+              <label className="text-sm mt-4">
+                📄 Upload Document for QA:
                 <input type="file" onChange={handleDocUpload} className="block mt-2" />
-              </div>
+              </label>
               {docQAActive && (
                 <div className="mt-4 w-full">
                   <input
@@ -191,7 +196,10 @@ function PatientChat() {
                     placeholder="Ask a question about the uploaded document"
                     className="w-full mt-2 px-3 py-2 text-black rounded"
                   />
-                  <button onClick={handleDocQuestion} className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                  <button
+                    onClick={handleDocQuestion}
+                    className="mt-2 bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                  >
                     Ask
                   </button>
                   {docA && (
@@ -202,8 +210,8 @@ function PatientChat() {
                 </div>
               )}
               {summary && (
-                <div className="mt-6 text-sm p-5 rounded-lg border bg-black text-white border-white max-h-64 overflow-y-auto w-full">
-                  <h2 className="text-lg font-semibold mb-3 text-yellow-300">Conversation Summary</h2>
+                <div className="mt-4 bg-black/40 text-sm p-4 rounded border border-white/10 max-h-64 overflow-y-auto w-full">
+                  <h2 className="text-lg font-semibold mb-2 text-yellow-300">Conversation Summary:</h2>
                   <p>{summary}</p>
                 </div>
               )}
