@@ -138,14 +138,14 @@ function PatientChat() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-indigo-900 to-black text-white p-4">
+    <div className="min-h-screen bg-gradient-to-br from-red-900 via-indigo-700 to-black text-white p-4">
       <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
         <div className="flex-1 border rounded-lg p-6 bg-black/30 backdrop-blur-md">
-          <h1 className="text-3xl font-bold mb-4 text-center text-purple-200">Patient Intake Chat</h1>
+          <h1 className="text-3xl font-medium mb-4 text-center text-purple-200">Patient Intake Chat</h1>
           <div className="h-[500px] overflow-y-auto mb-4 pr-2">
             {messages.map((msg, idx) => (
               <div key={idx} className={`mb-3 w-full flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] px-4 py-3 rounded-xl text-sm shadow-md break-words ${msg.sender === "user" ? "bg-blue-600 text-white" : "bg-red-800 text-white"}`}>
+                <div className={`max-w-[75%] px-4 py-3 rounded-xl text-sm shadow-md break-words ${msg.sender === "user" ? "bg-indigo-400 bg-opacity-50 text-white" : "bg-red-700 bg-opacity-50 text-white"}`}>
                   <p>{msg.text}</p>
                 </div>
               </div>
@@ -162,11 +162,11 @@ function PatientChat() {
             />
             <button
               onClick={sendMessage}
-              className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-md"
+              className="inline-block p-3 bg-gradient-to-br from-green-400 to-blue-600 hover:bg-gradient-to-bl from-red-400 to-blue-600 rounded-md"
             >
               Send
             </button>
-            <button onClick={handleFollowUp} className="bg-orange-500 hover:bg-orange-600 text-white px-5 py-2 rounded-md font-semibold">
+            <button onClick={handleFollowUp} className="inline-block p-3 bg-gradient-to-bl from-green-400 to-blue-600 hover:bg-gradient-to-br from-green-400 to-blue-600 rounded-md">
               Follow-Up
             </button>
           </div>
@@ -174,18 +174,18 @@ function PatientChat() {
             <div className="mt-4 flex flex-col items-center gap-3">
               <button
                 onClick={downloadPDF}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md"
+                className="bg-green-500 hover:bg-green-600 text-gray-100 bg-opacity-80 px-4 py-2 rounded-md"
               >
-                📄 Download Patient Summary PDF
+                Download Patient Summary PDF
               </button>
               <button
                 onClick={fetchSummary}
-                className="bg-yellow-500 hover:bg-yellow-600 text-black px-4 py-2 rounded-md"
+                className="bg-orange-500 hover:bg-orange-600 text-gray-100 px-4 py-2 rounded-md"
               >
-                🧠 Show Conversation Summary
+                Show Conversation Summary
               </button>
               <label className="text-sm mt-4">
-                📄 Upload Document for QA:
+                📄 Upload Document for Q/A:
                 <input type="file" onChange={handleDocUpload} className="block mt-2" />
               </label>
               {docQAActive && (
