@@ -40,7 +40,67 @@ all_questions = [
     "What is your date of birth?",
     "What gender do you identify as?",
     "What is your preferred language for speaking?",
-    "What is your preferred language for reading?"
+    "What is your preferred language for reading?",
+    "What is your preferred language for writing?",
+    "What is your preferred method of communication? (e.g., phone, email, in-person)",
+    "Do you have any allergies? If so, please list them.",
+    "Do you have any chronic conditions? If so, please list them.",
+    "Do you have any current symptoms or concerns?",
+    "What is your emergency contact's name?",
+    "What is your emergency contact's relationship to you?",
+    "What is your emergency contact's phone number?",
+    "What is your emergency contact's email address?",
+    "Do you have a preferred pharmacy? If so, please provide the name and address.",
+    "Do you have any health insurance? If so, please provide the name of the provider.",
+    "What is your health insurance policy number?",
+    "What is your health insurance group number?",
+    "What is your occupation?",
+    "What is your current employment status? (e.g., employed, unemployed, retired)",
+    "What is your highest level of education?",
+    "Do you have any disabilities? If so, please describe them.",
+    "Do you have any special needs or accommodations that we should be aware of?",
+    "Do you have any cultural or religious beliefs that may affect your healthcare?",
+    "Do you have any pets? If so, please list them.",
+    "Do you have any dietary restrictions? If so, please list them.",
+    "Do you have any specific health goals or concerns that you would like to address?",
+    "Do you have a primary care provider? If so, please provide their name and contact information.",
+    "Have you had any surgeries in the past? If so, please list them.",
+    "Have you had any hospitalizations in the past? If so, please list them.",
+    "Have you had any major illnesses in the past? If so, please list them.",
+    "Do you have any family history of major illnesses? If so, please list them.",
+    "Do you have any current medications? If so, please list them.",
+    "Do you have any past medications that you have taken? If so, please list them.",
+    "Do you have any allergies to medications? If so, please list them.",
+    "Do you have any allergies to foods? If so, please list them.",
+    "Do you have any allergies to environmental factors? If so, please list them.",
+    "Do you have any history of mental health conditions? If so, please describe them.",
+    "Do you have any history of substance abuse? If so, please describe it.",
+    "Do you have any history of domestic violence or abuse? If so, please describe it.",
+    "Do you have any history of sexual abuse or assault? If so, please describe it.",
+    "Do you have any history of trauma or PTSD? If so, please describe it.",
+    "Do you have any history of self-harm or suicidal thoughts? If so, please describe it.",
+    "Do you have any history of eating disorders? If so, please describe it.",
+    "Do you have any history of sleep disorders? If so, please describe it.",
+    "Do you have any history of chronic pain? If so, please describe it.",
+    "Do you have any history of heart disease? If so, please describe it.",
+    "Do you have any history of lung disease? If so, please describe it.",
+    "Do you have any history of liver disease? If so, please describe it.",
+    "Do you have any history of kidney disease? If so, please describe it.",
+    "Do you have any history of gastrointestinal disease? If so, please describe it.",
+    "Do you have any history of neurological disease? If so, please describe it.",
+    "Do you have any history of autoimmune disease? If so, please describe it.",
+    "Do you have any history of cancer? If so, please describe it.",
+    "Do you have any history of diabetes? If so, please describe it.",
+    "Do you have any history of hypertension? If so, please describe it.",
+    "Do you have any history of high cholesterol? If so, please describe it.",
+    "Do you have any history of stroke? If so, please describe it.",
+    "Do you have any history of seizures? If so, please describe it.",
+    "Do you have any history of thyroid disease? If so, please describe it.",
+    "Do you have any history of asthma or other respiratory conditions? If so, please describe it.",
+    "Do you have any history of allergies or allergic reactions? If so, please describe it.",
+    "Do you have any history of skin conditions? If so, please describe it.",
+    "Do you have any history of eye conditions? If so, please describe it.",
+    "Do you have any history of hearing conditions? If so, please describe it.",
     # "Are you able to read without difficulty?",
     # "What is your current address?",
     # "What is your phone number?",
@@ -117,95 +177,50 @@ def chat(msg: Message):
     question_index += 1
     return {"response": next_question, "done": False, "question": next_question}
 
+@app.post("/follow_up")
+def follow_up(payload: dict):
+    index = payload.get("ref_index")
+    user_question = payload.get("question")
 
+    if index is None or not user_question:
+        raise HTTPException(status_code=400, detail="Missing reference index or question")
 
-def generate_llm_summary() -> Optional[str]:
-    """Generate high-quality medical summary using DeepSeek LLM"""
+    if index >= len(all_questions) or index >= len(answers):
+        return {"answer": "Invalid reference index."}
+
+    reference = f"Question: {all_questions[index]}\nAnswer: {answers[index]}"
+    prompt = f"""You are a helpful medical assistant answering follow-up questions from a patient.
+This is the original intake data:\n\n{reference}\n\nNow the patient has this follow-up question:\n\n{user_question}\n\nAnswer:"""
+
     try:
-        # 1. Prepare optimized medical prompt
-        prompt = create_medical_prompt()
-        if not prompt:
-            return None
-
-        # 2. Configure LLM request for medical context
-        llm_config = {
-            "model": "deepseek-r1:8b",
-            "prompt": prompt,
-            "system": "You are a medical assistant creating structured patient summaries.",
-            "options": {
-                "temperature": 0.3,
-                "num_ctx": 2048,
-                "repeat_penalty": 1.1
-            },
-            "stream": False
-        }
-
-        # 3. Execute request with proper error handling
-        with requests.post(
+        response = requests.post(
             "http://localhost:11434/api/generate",
-            json=llm_config,
-            headers={"Content-Type": "application/json"},
-            timeout=60
-        ) as response:
-            
-            # 4. Validate and parse response
-            if response.status_code == 200:
-                result = response.json()
-                if isinstance(result, dict):
-                    summary = result.get("response", "").strip()
-                    if validate_medical_summary(summary):
-                        return summary
-
-    except Exception as e:
-        print(f"LLM Summary Error: {str(e)}")
-    
-    return None
-
-def create_medical_prompt() -> str:
-    """Construct optimized medical prompt"""
-    try:
-        medical_data = []
-        for i, answer in enumerate(answers[:len(all_questions)]):
-            question = all_questions[i].lower()
-            if any(kw in question for kw in ['name', 'birth', 'diagnos', 'medic', 'hospital', 'surg', 'pain']):
-                medical_data.append(f"{all_questions[i]}: {answer}")
-
-        if not medical_data:
-            return ""
-
-        return (
-            "Generate a professional medical summary using ONLY these facts:\n\n" +
-            "\n".join(medical_data) +
-            "\n\nFormat with these sections:\n1. Patient Demographics\n2. Medical History\n3. Current Medications\n" +
-            "4. Treatment Plan\nUse bullet points and medical terminology."
+            json={"model": "mistral", "prompt": prompt, "stream": True},
+            timeout=120,
+            stream=True
         )
-    except Exception:
-        return ""
-
-def validate_medical_summary(text: str) -> bool:
-    """Ensure summary meets quality standards"""
-    return (
-        isinstance(text, str) and 
-        len(text) > 50 and 
-        any(section in text.lower() for section in ["demographic", "history", "medication"])
-    )
+        answer = ""
+        for line in response.iter_lines():
+            if line:
+                try:
+                    data = json.loads(line.decode("utf-8"))
+                    answer += data.get("response", "")
+                except json.JSONDecodeError:
+                    continue
+        return {"answer": answer}
+    except Exception as e:
+        return {"answer": f"Error generating response: {str(e)}"}
 
 @app.get("/summary")
 def get_summary():
     try:
-        chat_summary_text = create_medical_prompt()  # however you create your prompt
-
+        chat_summary_text = create_medical_prompt()
         response = requests.post(
             "http://localhost:11434/api/generate",
-            json={
-                "model": "mistral",
-                "prompt": chat_summary_text,
-                "stream": True
-            },
+            json={"model": "mistral", "prompt": chat_summary_text, "stream": True},
             timeout=120,
-            stream=True  # must stream to process tokens incrementally
+            stream=True
         )
-
         summary = ""
         for line in response.iter_lines():
             if line:
@@ -213,45 +228,10 @@ def get_summary():
                     data = json.loads(line.decode("utf-8"))
                     summary += data.get("response", "")
                 except json.JSONDecodeError:
-                    continue  # skip malformed lines
-
+                    continue
         return {"summary": summary}
-
-    except requests.exceptions.HTTPError as e:
-        print("LLM returned an HTTP error:", e.response.text)
-        return {"summary": "Error: LLM failed with a server error."}
     except requests.exceptions.RequestException as e:
-        print("Request failed:", e)
-        return {"summary": "Error: Unable to generate summary."}
-
-def generate_structured_fallback() -> str:
-    """High-quality fallback without LLM"""
-    sections = {
-        "Patient Demographics": [],
-        "Medical History": [],
-        "Current Medications": [],
-        "Health Risks": []
-    }
-    
-    for i, answer in enumerate(answers[:len(all_questions)]):
-        question = all_questions[i].lower()
-        
-        if 'name' in question or 'birth' in question:
-            sections["Patient Demographics"].append(answer)
-        elif 'diagnos' in question or 'hospital' in question:
-            sections["Medical History"].append(answer)
-        elif 'medic' in question:
-            sections["Current Medications"].append(answer)
-        elif 'smok' in question or 'alcohol' in question:
-            sections["Health Risks"].append(answer)
-    
-    summary = ["MEDICAL SUMMARY", "="*40]
-    for section, items in sections.items():
-        if items:
-            summary.append(f"\n{section.upper()}:")
-            summary.extend(f" • {item}" for item in items)
-    
-    return "\n".join(summary) if len(summary) > 2 else "Insufficient medical data"
+        return {"summary": f"Error: {str(e)}"}
 
 @app.get("/download_pdf")
 def download_pdf():
@@ -281,22 +261,32 @@ def ask_doc(payload: dict):
         return JSONResponse(content={"answer": "No document uploaded yet."})
     system_prompt = f"""You are a medical assistant. Use the uploaded document to answer this question:\n\nDocument:\n{uploaded_doc_text}\n\nQuestion: {question}\nAnswer:"""
     response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={
-                "model": "mistral",
-                "prompt": system_prompt,
-                "stream": True
-            },
-            timeout=120,
-            stream=True  # must stream to process tokens incrementally
-        )
+        "http://localhost:11434/api/generate",
+        json={"model": "mistral", "prompt": system_prompt, "stream": True},
+        timeout=120,
+        stream=True
+    )
     summary = ""
     for line in response.iter_lines():
-            if line:
-                try:
-                    data = json.loads(line.decode("utf-8"))
-                    summary += data.get("response", "")
-                except json.JSONDecodeError:
-                    continue  # skip malformed lines
-
+        if line:
+            try:
+                data = json.loads(line.decode("utf-8"))
+                summary += data.get("response", "")
+            except json.JSONDecodeError:
+                continue
     return {"summary": summary}
+
+def create_medical_prompt() -> str:
+    medical_data = []
+    for i, answer in enumerate(answers[:len(all_questions)]):
+        question = all_questions[i].lower()
+        if any(kw in question for kw in ['name', 'birth', 'diagnos', 'medic', 'hospital', 'surg', 'pain']):
+            medical_data.append(f"{all_questions[i]}: {answer}")
+    if not medical_data:
+        return ""
+    return (
+        "Generate a professional medical summary using ONLY these facts:\n\n" +
+        "\n".join(medical_data) +
+        "\n\nFormat with these sections:\n1. Patient Demographics\n2. Medical History\n3. Current Medications\n" +
+        "4. Treatment Plan\nUse bullet points and medical terminology."
+    )
