@@ -134,6 +134,51 @@ if 'page' not in st.session_state:
 # Multi-page app
 st.title("Pre-Doctor Visit Web App")
 
+# Custom CSS
+st.markdown("""
+<style>
+    .stButton>button {
+        background-color: #2E7D32;
+        color: white;
+        border-radius: 8px;
+        padding: 0.5rem 1rem;
+        border: none;
+    }
+    .stButton>button:hover {
+        background-color: #1B5E20;
+    }
+    div.stRadio > div {
+        background-color: #F0F8F1;
+        padding: 1rem;
+        border-radius: 8px;
+    }
+    .stTextInput>div>div>input {
+        border-radius: 8px;
+    }
+    .stTextArea>div>div>textarea {
+        border-radius: 8px;
+    }
+    div.stSlider > div > div {
+        background-color: #2E7D32;
+    }
+    .main {
+        background-color: #FFFFFF;
+    }
+    .st-emotion-cache-18ni7ap {
+        background-color: #F0F8F1;
+    }
+    div[data-testid="stHeader"] {
+        background-color: #FFFFFF;
+    }
+    .css-10trblm {
+        color: #2E7D32;
+    }
+    div[data-baseweb="select"] > div {
+        border-radius: 8px;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 if st.session_state.page == "User Info":
     st.header("User Information")
     name = st.text_input("Enter your name:")
