@@ -87,4 +87,23 @@ AI-Futures-Hackathon/
 
 ---
 
+# AI Futures Hackathon Streamlit App
+
+## How to Run
+
+1. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. Run the Streamlit app:
+   ```bash
+   streamlit run app.py
+   ```
+
+## Description
+This is a Streamlit-based application for the AI Futures Hackathon.
+
+---
+
 Built by Vishal Vasanthakumar Poornima and team for AI Futures Hackathon ✨
