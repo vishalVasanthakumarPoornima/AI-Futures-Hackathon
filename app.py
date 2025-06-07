@@ -4,9 +4,14 @@ from fpdf import FPDF
 from typing import Optional
 from random import randint
 import requests
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 # Gemini API configuration
-GEMINI_API_KEY = "AIzaSyAE1Y6-_7jtOjN3wGi4QR2ai0c_qrhMGbc"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
 
 def process_symptoms(symptoms: str) -> dict:
