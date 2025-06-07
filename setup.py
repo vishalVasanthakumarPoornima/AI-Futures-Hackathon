@@ -46,7 +46,7 @@ def open_new_terminal(commands, title=""):
         subprocess.run(["osascript", "-e", osa_cmd])
 
     else:
-        print(f"⚠️ Unsupported platform: {system}")
+        print(f"Unsupported platform: {system}")
 
 def main():
     print("Checking dependencies...")
@@ -74,7 +74,7 @@ def main():
 
     # Start Uvicorn API backend
     open_new_terminal([
-        f"cd {NORMAL_DIR}",
+        f"cd {os.path.abspath(NORMAL_DIR)}",
         "uvicorn main:app --reload"
     ], title="Uvicorn")
 

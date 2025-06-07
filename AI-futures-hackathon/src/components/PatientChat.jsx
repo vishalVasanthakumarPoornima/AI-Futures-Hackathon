@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import '../index.css';
 
 function PatientChat() {
   const [messages, setMessages] = useState([]);
@@ -138,14 +139,14 @@ function PatientChat() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-red-900 via-indigo-700 to-black text-white p-4">
+    <div style={{ fontFamily: 'Concert One, sans-serif' }} className="min-h-screen bg-gradient-to-br from-red-900 via-indigo-700 to-black text-white p-4">
       <div className="flex flex-col lg:flex-row gap-6 max-w-7xl mx-auto">
         <div className="flex-1 border rounded-lg p-6 bg-black/30 backdrop-blur-md">
-          <h1 className="text-3xl font-medium mb-4 text-center text-purple-200">Patient Intake Chat</h1>
+          <h1 style={{ fontFamily: 'Lexend, sans-serif' }} className="font-lexend text-3xl font-medium mb-4 text-center text-purple-200">Patient Intake Chat</h1>
           <div className="h-[500px] overflow-y-auto mb-4 pr-2">
             {messages.map((msg, idx) => (
               <div key={idx} className={`mb-3 w-full flex ${msg.sender === "user" ? "justify-end" : "justify-start"}`}>
-                <div className={`max-w-[75%] px-4 py-3 rounded-xl text-sm shadow-md break-words ${msg.sender === "user" ? "bg-indigo-400 bg-opacity-50 text-white" : "bg-red-700 bg-opacity-50 text-white"}`}>
+                <div style={{ fontFamily: 'Concert One, sans-serif' }} className={`max-w-[75%] px-4 py-3 rounded-xl text-sm shadow-md break-words ${msg.sender === "user" ? "bg-indigo-400 bg-opacity-50 text-white" : "bg-red-700 bg-opacity-50 text-white"}`}>
                   <p>{msg.text}</p>
                 </div>
               </div>
