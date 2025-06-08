@@ -2,9 +2,9 @@
 
 Welcome to our AI-powered medical intake assistant — an intelligent system designed to **streamline patient onboarding**, improve healthcare workflows, and facilitate early diagnosis insights with the help of large language models.
 
-Table number: 15
-Hacker ID: idk
+
 ---
+Table number: 15
 
 ## Overview
 
