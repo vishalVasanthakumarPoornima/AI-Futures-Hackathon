@@ -1,8 +1,3 @@
-**Patient Intake Chat Assistant** project:
-
----
-
-````markdown
 # 💬 Patient Intake Chat Assistant
 
 Welcome to our AI-powered medical intake assistant — an intelligent system designed to **streamline patient onboarding**, improve healthcare workflows, and facilitate early diagnosis insights with the help of large language models.
@@ -24,7 +19,7 @@ Users can chat with an AI agent to:
 
 ## 📸 Project Screenshot
 
-![Patient Intake Chat](project_screenshot.png)
+![Patient Intake Chat](0a871fc7-e65c-40d4-b910-4def771377ba.png)
 
 ---
 
@@ -80,55 +75,3 @@ Patients can upload documents (like prior medical reports) and ask targeted ques
 
 ```env
 GEMINI_API_KEY=your_google_gemini_api_key
-````
-
-### ▶️ Start the Backend
-
-```bash
-pip install -r requirements.txt
-uvicorn main:app --reload
-```
-
-### ▶️ Start the Frontend
-
-```bash
-cd frontend
-npm install
-npm run dev
-```
-
----
-
-## 🧑‍⚕️ Use Case
-
-This app is ideal for:
-
-* **Clinics** automating new patient onboarding
-* **Telemedicine providers** needing structured pre-visit data
-* **Hackathons & demos** of medical NLP + LLM integration
-* **Health startups** needing a white-label intake engine
-
----
-
-## 📍 Project Submission Info
-
-* **Team Presentation Table**: 19
-* **Hacker ID**: `VishalVasanth-HID32`
-
----
-
-## 💬 Questions or Suggestions?
-
-Feel free to reach out during the demo, or contact us after the event!
-
-Let's build better healthcare, together. 🩺✨
-
-```
-
----
-
-Let me know if you want:
-- Markdown to HTML version
-- The README rendered as a PDF
-- A bundled ZIP for submission with image included
-```
