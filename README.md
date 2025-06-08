@@ -1,10 +1,12 @@
-# 💬 Patient Intake Chat Assistant
+# Patient Intake Chat Assistant
 
 Welcome to our AI-powered medical intake assistant — an intelligent system designed to **streamline patient onboarding**, improve healthcare workflows, and facilitate early diagnosis insights with the help of large language models.
 
+Table number: 15
+Hacker ID: idk
 ---
 
-## 🌐 Overview
+## Overview
 
 This project combines the conversational abilities of **Gemini 2.0 Flash** with a clean and intuitive web interface to create a **virtual intake assistant** for clinics, hospitals, and telehealth platforms.
 
@@ -17,15 +19,15 @@ Users can chat with an AI agent to:
 
 ---
 
-## 📸 Project Screenshot
+## Project Screenshot
 
 ![Patient Intake Chat](project_screenshot.png)
 
 ---
 
-## 🧠 Core Features
+## Core Features
 
-### 🗣️ Smart Intake Conversation
+### Smart Intake Conversation
 The assistant walks the patient through 30+ essential health questions covering:
 - Basic demographics
 - Chronic conditions
@@ -34,24 +36,24 @@ The assistant walks the patient through 30+ essential health questions covering:
 - COVID-19 impact
 - Self-management and insurance
 
-### 💡 Follow-Up Understanding
+### Follow-Up Understanding
 Patients can click "Follow-Up" to ask the AI clarifying questions about any previous answer — just like they'd ask a real nurse.
 
-### 📄 PDF Summary
+### PDF Summary
 Once the intake is complete, users can download a structured **PDF report** divided into clinical sections. This helps doctors review patient data efficiently.
 
-### 🔍 Symptom Analyzer
+### Symptom Analyzer
 Users can press "Immediate Analysis" to describe symptoms and receive:
 - 3 possible causes
 - A life-threatening risk assessment
 - A risk rating (1–10)
 
-### 📂 Document Upload & Q&A
+### Document Upload & Q&A
 Patients can upload documents (like prior medical reports) and ask targeted questions about their contents.
 
 ---
 
-## 🛠️ Technologies Used
+## Technologies Used
 
 | Layer        | Tools/Frameworks                                |
 |--------------|--------------------------------------------------|
@@ -61,17 +63,19 @@ Patients can upload documents (like prior medical reports) and ask targeted ques
 | PDF Export   | FPDF (Python-based PDF generation)              |
 | Deployment   | Localhost + Future plans for Docker/Azure       |
 
+(Make sure you have all the modules installed locally!)
+
 ---
 
-## 🧪 How to Run It Locally
+## How to Run It Locally
 
-### 🔧 Requirements
+### Requirements
 
 - Python 3.10+
 - Node.js (for frontend)
 - `.env` file with your API key
 
-### 📝 Create your `.env` file
+### Create your `.env` file
 
 ```env
 GEMINI_API_KEY=your_google_gemini_api_key
