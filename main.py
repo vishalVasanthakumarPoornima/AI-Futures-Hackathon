@@ -5,10 +5,17 @@ from fastapi import HTTPException
 from pydantic import BaseModel
 from fpdf import FPDF
 from typing import Optional
+from dotenv import load_dotenv
 import requests
 import os
 import json
 import time
+
+load_dotenv()
+
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+
 
 app = FastAPI()
 
@@ -86,45 +93,15 @@ def chat(msg: Message):
     question_index += 1
     return {"response": next_question, "done": False, "question": next_question}
 
-@app.post("/follow_up")
-def follow_up(payload: dict):
-    index = payload.get("ref_index")
-    user_question = payload.get("question")
-
-    if index is None or not user_question:
-        raise HTTPException(status_code=400, detail="Missing reference index or question")
-
-    if index >= len(all_questions) or index >= len(answers):
-        return {"answer": "Invalid reference index."}
-
-    reference = f"Question: {all_questions[index]}\nAnswer: {answers[index]}"
-    prompt = f"""You are a helpful medical assistant answering follow-up questions from a patient.
-This is the original intake data:\n\n{reference}\n\nNow the patient has this follow-up question:\n\n{user_question}\n\nAnswer:"""
-
-    try:
-        response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "mistral", "prompt": prompt, "stream": True},
-            timeout=120,
-            stream=True
-        )
-        answer = ""
-        for line in response.iter_lines():
-            if line:
-                try:
-                    data = json.loads(line.decode("utf-8"))
-                    answer += data.get("response", "")
-                except json.JSONDecodeError:
-                    continue
-        return {"answer": answer}
-    except Exception as e:
-        return {"answer": f"Error generating response: {str(e)}"}
-
-def process_symptoms(symptoms: str) -> dict:
+@app.post("/analysis")
+def process_symptoms(load: dict) -> dict:
     """Process symptoms using Gemini API and return potential reasons and risk rating."""
     headers = {
         "Content-Type": "application/json"
     }
+    
+    symptoms = load.get("sym")
+    
     
     prompt = f"""Given these symptoms, please analyze:
     Symptoms: {symptoms}
@@ -150,59 +127,77 @@ def process_symptoms(symptoms: str) -> dict:
     }
 
     try:
+        query_params = {"key": GEMINI_API_KEY}
         response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "mistral", "prompt": prompt, "stream": True},
-            timeout=120,
-            stream=True
+            GEMINI_API_URL,
+            params=query_params,
+            json=payload,
+            headers=headers
         )
-        
-        # Print response for debugging
-        print(f"Status Code: {response.status_code}")
-        print(f"Response: {response.text}")
-        
-        response.raise_for_status()
-        
+        with open("gemini_response.json", "w") as f:
+            f.write(response.text) 
+
         data = response.json()
-        if 'candidates' in data and len(data['candidates']) > 0:
-            response_text = data['candidates'][0]['content']['parts'][0]['text']
-            
-            # Parse the response
-            reasons = []
-            risk_rating = 5  # Default risk rating
-            life_threatening = "No assessment available"
-            
-            sections = response_text.split('\n')
-            
-            # Extract information
-            for line in sections:
-                if line.strip().startswith('-'):
-                    reasons.append(line.strip('- ').capitalize())
-                elif 'risk rating:' in line.lower():
-                    try:
-                        risk_rating = int(''.join(filter(str.isdigit, line)))
-                    except ValueError:
-                        risk_rating = 5
-                elif 'life-threatening' in line.lower():
-                    life_threatening = line.split(':')[-1].strip()
-            
-            if not reasons:
-                reasons = ["No specific causes identified"]
-            
-            return {
-                "reasons": reasons,
-                "risk_rating": risk_rating,
-                "life_threatening": life_threatening
-            }
-        else:
-            return {"answer": "Invalid reference index."}
-
-            
-    except requests.exceptions.RequestException as e:
-        return {"answer": "Invalid reference index."}
-
+        answer = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+        return {"answer": answer}
     except Exception as e:
+        return {"answer": f"Error generating response: {str(e)}"}
+
+
+@app.post("/follow_up")
+def follow_up(payload: dict):
+
+    headers = {
+    "Content-Type": "application/json"
+    }
+
+    index = payload.get("ref_index")
+    user_question = payload.get("question")
+
+    if index is None or not user_question:
+        raise HTTPException(status_code=400, detail="Missing reference index or question")
+
+    if index >= len(all_questions) or index >= len(answers):
         return {"answer": "Invalid reference index."}
+
+    reference = f"Question: {all_questions[index]}\nAnswer: {answers[index]}"
+    prompt = f"""You are a helpful medical assistant answering follow-up questions from a patient.
+This is the original intake data:\n\n{reference}\n\nNow the patient has this follow-up question:\n\n{user_question}\n\nAnswer:"""
+
+
+    pay = {
+        "contents": [{
+            "parts": [{
+                "text": prompt
+            }]
+        }]
+    }
+
+    try:
+        query_params = {"key": GEMINI_API_KEY}
+        response = requests.post(
+        GEMINI_API_URL,
+        params=query_params,
+        json=pay,
+        headers=headers
+        )
+
+        with open("gemini_response.json", "w") as f:
+            f.write(response.text) 
+
+        data = response.json()
+        answer = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+        return {"answer": answer}
+        for line in response.iter_lines():
+            if line:
+                try:
+                    data = json.loads(line.decode("utf-8"))
+                    answer += data.get("response", "")
+                except json.JSONDecodeError:
+                    continue
+        return {"answer": answer}
+    except Exception as e:
+        return {"answer": f"Error generating response: {str(e)}"}
 
 
 def get_symptom_analysis(symptoms: str, pain_rating: int) -> dict:
@@ -234,13 +229,28 @@ def get_symptom_analysis(symptoms: str, pain_rating: int) -> dict:
 def get_summary():
     try:
         chat_summary_text = create_medical_prompt()
+        headers = {
+        "Content-Type": "application/json"
+        }
+        pay = {
+        "contents": [{
+            "parts": [{
+                    "text": chat_summary_text
+                }]
+            }]
+        }
+        query_params = {"key": GEMINI_API_KEY}
         response = requests.post(
-            "http://localhost:11434/api/generate",
-            json={"model": "mistral", "prompt": chat_summary_text, "stream": True},
-            timeout=120,
-            stream=True
+            GEMINI_API_URL,
+            params=query_params,
+            json=pay,
+            headers=headers
         )
-        summary = ""
+        with open("gemini_response.json", "w") as f:
+            f.write(response.text) 
+        data = response.json()
+        answer = data.get("candidates", [{}])[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+        return {"summary": answer}
         for line in response.iter_lines():
             if line:
                 try:

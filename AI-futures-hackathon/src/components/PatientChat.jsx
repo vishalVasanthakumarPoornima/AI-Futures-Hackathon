@@ -1,20 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 import Popup from './ui/Popup';
+import LargePopup from './ui/LargePopup';
 import '../index.css';
 
 function PatientChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
-  const [finput, setFinput] = useState("");
   const [done, setDone] = useState(false);
   const [summary, setSummary] = useState("");
+  const [analysis, setAnalysis] = useState("");
   const [docQAActive, setDocQAActive] = useState(false);
   const [docQ, setDocQ] = useState("");
   const [docA, setDocA] = useState("");
   const chatEndRef = useRef(null);
 
   const [followUpQ, setFollowUpQ] = useState("");
+  const [analysisQ, setAnalysisQ] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
 
@@ -77,8 +79,33 @@ function PatientChat() {
 
   const [isPopupOpen, setIsPopupOpen] = useState(false);
 
+  const [isOpen, setIsOpen] = useState(false);
+  const [text, setText] = useState("");
+
   const openPopup = () => setIsPopupOpen(true);
   const closePopup = () => setIsPopupOpen(false);
+
+
+  const handleAnalysis = async () => {
+    console.log("test1");
+    if(!analysisQ.trim())
+      console.log("aate");
+
+    try {
+      const res = await axios.post("http://localhost:8000/analysis", {
+        sym: analysisQ,
+      });
+      
+      const analysisAnswer = res.data.answer;
+      console.log("test");
+      console.log(analysisAnswer);
+      setAnalysis(analysisAnswer);
+    } catch (error) {
+      console.log("test3");
+      console.error("Summary fetch failed:", error);
+      setAnalysis("There was an error generating the summary.");
+    }
+  };
 
   const handleFollowUp = async () => {
     if (!followUpQ.trim()) return;
@@ -92,8 +119,7 @@ function PatientChat() {
         question: followUpQ,
       });
   
-      const followUpAnswer = res.data.answer;
-  
+      const followUpAnswer = res.data.answer;  
       setMessages((prev) => [
         ...prev,
         { sender: "user", text: followUpQ },
@@ -190,7 +216,39 @@ function PatientChat() {
             <button onClick={openPopup} className="inline-block p-3 bg-gradient-to-bl from-green-400 to-blue-600 hover:bg-gradient-to-br from-green-400 to-blue-600 rounded-md">
               Follow-Up
             </button>
+            <button
+        onClick={() => setIsOpen(true)}
+        className="inline-block p-3 bg-gradient-to-br from-red-400 to-blue-500 hover:bg-gradient-to-bl from-red-400 to-red-500 rounded-md"
+        >
+        Immediate Analysis
+      </button>
+
+      <LargePopup isOpen={isOpen} onClose={() => setIsOpen(false)}>
+        <h2 className="text-2xl font-bold text-gray-800 mb-4">Symptom Analysis</h2>
+        <input
+    type="text"
+    value={analysisQ}
+    onChange={(e) => setAnalysisQ(e.target.value)}
+    onKeyDown={(e) => e.key === "Enter" && handleFollowUp()}
+    className="flex-1 px-4 py-2 text-black border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+    placeholder="Enter your symptoms"
+    disabled={isSubmitting}
+  />
+        <button
+          onClick={() => {
+            console.log("Submitted:", text);
+            handleAnalysis();
+          }}
+          className="px-5 py-2 bg-green-600 text-white rounded hover:bg-green-700"
+        >
+          Submit
+        </button>
+        <div className="text-black bg-black/40 text-sm p-4 rounded border border-white/10 max-h-64 overflow-y-auto w-full">
+        <p>{analysis}</p>
+        </div>
+      </LargePopup>
           </div>
+          
           {done && (
             <div className="mt-4 flex flex-col items-center gap-3">
               <button
@@ -256,7 +314,10 @@ function PatientChat() {
     disabled={isSubmitting}
   />
   <button
-    onClick={handleFollowUp}
+  onClick={() => {
+    setIsPopupOpen(false);
+    handleFollowUp();
+  }}
     disabled={isSubmitting}
     className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
   >
