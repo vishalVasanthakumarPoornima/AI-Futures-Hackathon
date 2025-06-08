@@ -1,16 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
+import Popup from './ui/Popup';
 import '../index.css';
 
 function PatientChat() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
+  const [finput, setFinput] = useState("");
   const [done, setDone] = useState(false);
   const [summary, setSummary] = useState("");
   const [docQAActive, setDocQAActive] = useState(false);
   const [docQ, setDocQ] = useState("");
   const [docA, setDocA] = useState("");
   const chatEndRef = useRef(null);
+
+  const [followUpQ, setFollowUpQ] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
 
   useEffect(() => {
     const resetAndInit = async () => {
@@ -69,25 +75,39 @@ function PatientChat() {
     }
   };
 
-  const handleFollowUp = async () => {
-    const followUpQ = prompt("What would you like to ask for clarification?");
-    if (!followUpQ) return;
-    const userAnswers = messages.filter((msg) => msg.sender === "user").length - 1;
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
 
+  const openPopup = () => setIsPopupOpen(true);
+  const closePopup = () => setIsPopupOpen(false);
+
+  const handleFollowUp = async () => {
+    if (!followUpQ.trim()) return;
+  
+    const userAnswers = messages.filter((msg) => msg.sender === "user").length - 1;
+    setIsSubmitting(true);
+  
     try {
       const res = await axios.post("http://localhost:8000/follow_up", {
         ref_index: userAnswers,
-        question: followUpQ
+        question: followUpQ,
       });
+  
       const followUpAnswer = res.data.answer;
+  
       setMessages((prev) => [
         ...prev,
         { sender: "user", text: followUpQ },
-        { sender: "bot", text: followUpAnswer }
+        { sender: "bot", text: followUpAnswer },
       ]);
+      setFollowUpQ(""); // clear input
     } catch (err) {
       console.error("Follow-up failed:", err);
-      setMessages((prev) => [...prev, { sender: "bot", text: "Follow-up failed. Please try again." }]);
+      setMessages((prev) => [
+        ...prev,
+        { sender: "bot", text: "Follow-up failed. Please try again." },
+      ]);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -167,7 +187,7 @@ function PatientChat() {
             >
               Send
             </button>
-            <button onClick={handleFollowUp} className="inline-block p-3 bg-gradient-to-bl from-green-400 to-blue-600 hover:bg-gradient-to-br from-green-400 to-blue-600 rounded-md">
+            <button onClick={openPopup} className="inline-block p-3 bg-gradient-to-bl from-green-400 to-blue-600 hover:bg-gradient-to-br from-green-400 to-blue-600 rounded-md">
               Follow-Up
             </button>
           </div>
@@ -218,7 +238,32 @@ function PatientChat() {
               )}
             </div>
           )}
+          
         </div>
+        {/* <Popup isOpen={isPopupOpen} onClose={closePopup}>
+        <h2 className="text-xl font-bold text-black mb-4">Hello from the Popup!</h2>
+        <p className="text-black">Press <kbd>Escape</kbd> to close this popup.</p>
+      </Popup> */}
+        <Popup isOpen={isPopupOpen} onClose={closePopup}>
+        <div className="flex gap-2 mt-4">
+  <input
+    type="text"
+    value={followUpQ}
+    onChange={(e) => setFollowUpQ(e.target.value)}
+    onKeyDown={(e) => e.key === "Enter" && handleFollowUp()}
+    className="flex-1 px-4 py-2 text-black border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-400"
+    placeholder="Ask a follow-up question..."
+    disabled={isSubmitting}
+  />
+  <button
+    onClick={handleFollowUp}
+    disabled={isSubmitting}
+    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+  >
+    Send
+  </button>
+</div>
+      </Popup>
       </div>
     </div>
   );

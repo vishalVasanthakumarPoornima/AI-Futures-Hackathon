@@ -120,6 +120,116 @@ This is the original intake data:\n\n{reference}\n\nNow the patient has this fol
     except Exception as e:
         return {"answer": f"Error generating response: {str(e)}"}
 
+def process_symptoms(symptoms: str) -> dict:
+    """Process symptoms using Gemini API and return potential reasons and risk rating."""
+    headers = {
+        "Content-Type": "application/json"
+    }
+    
+    prompt = f"""Given these symptoms, please analyze:
+    Symptoms: {symptoms}
+    
+    Please respond in this format:
+    Potential Causes:
+    - [cause 1]
+    - [cause 2]
+    - [cause 3]
+    
+    Life-Threatening Assessment:
+    [Yes/No] - [brief explanation]
+    
+    Risk Rating: [1-10]
+    """
+    
+    payload = {
+        "contents": [{
+            "parts": [{
+                "text": prompt
+            }]
+        }]
+    }
+
+    try:
+        response = requests.post(
+            "http://localhost:11434/api/generate",
+            json={"model": "mistral", "prompt": prompt, "stream": True},
+            timeout=120,
+            stream=True
+        )
+        
+        # Print response for debugging
+        print(f"Status Code: {response.status_code}")
+        print(f"Response: {response.text}")
+        
+        response.raise_for_status()
+        
+        data = response.json()
+        if 'candidates' in data and len(data['candidates']) > 0:
+            response_text = data['candidates'][0]['content']['parts'][0]['text']
+            
+            # Parse the response
+            reasons = []
+            risk_rating = 5  # Default risk rating
+            life_threatening = "No assessment available"
+            
+            sections = response_text.split('\n')
+            
+            # Extract information
+            for line in sections:
+                if line.strip().startswith('-'):
+                    reasons.append(line.strip('- ').capitalize())
+                elif 'risk rating:' in line.lower():
+                    try:
+                        risk_rating = int(''.join(filter(str.isdigit, line)))
+                    except ValueError:
+                        risk_rating = 5
+                elif 'life-threatening' in line.lower():
+                    life_threatening = line.split(':')[-1].strip()
+            
+            if not reasons:
+                reasons = ["No specific causes identified"]
+            
+            return {
+                "reasons": reasons,
+                "risk_rating": risk_rating,
+                "life_threatening": life_threatening
+            }
+        else:
+            return {"answer": "Invalid reference index."}
+
+            
+    except requests.exceptions.RequestException as e:
+        return {"answer": "Invalid reference index."}
+
+    except Exception as e:
+        return {"answer": "Invalid reference index."}
+
+
+def get_symptom_analysis(symptoms: str, pain_rating: int) -> dict:
+    """Analyze symptoms and return structured health insights."""
+    result = process_symptoms(f"{symptoms} (Pain level: {pain_rating}/10)")
+
+    reasons = result.get("reasons", [])
+    life_threat = result.get("life_threatening", "Assessment unavailable")
+    risk_rating = result.get("risk_rating", 0)
+
+    status = (
+        "high" if risk_rating >= 7 else
+        "moderate" if risk_rating >= 4 else
+        "low"
+    )
+
+    return {
+        "reasons": reasons,
+        "life_threatening": life_threat,
+        "risk_rating": risk_rating,
+        "status": status,
+        "urgent": risk_rating >= 8
+    }
+
+
+
+
 @app.get("/summary")
 def get_summary():
     try:
