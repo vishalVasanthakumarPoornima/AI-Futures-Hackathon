@@ -10,6 +10,7 @@ import requests
 import os
 import json
 import time
+from datetime import datetime
 
 load_dotenv()
 
@@ -42,20 +43,36 @@ question_index = 0
 uploaded_doc_text = ""
 
 all_questions = [
+    "Are you ready to get your medical history recorded?",
     "What is your full name?",
     "What is your date of birth?",
     "What gender do you identify as?",
-    "What is your phone number?",
-    "What is your current address?",
-    "Do you have any allergies? If so, please list them.",
-    "Do you have any chronic conditions? If so, please list them.",
+    "What is your preferred language, if any?",
+    "What is your preferred method of communication? (e.g., phone, email, in-person)",
+    "Do you have any allergies or chronic conditions? If so, please list them.",
     "Do you have any current symptoms or concerns?",
+    "Do you have any disabilities? If so, please describe them.",
     "Have you had any surgeries in the past? If so, please list them.",
     "Have you had any hospitalizations in the past? If so, please list them.",
-    "Do you have any current medications? If so, please list them.",
+    "Have you had any major illnesses in the past? If so, please list them.",
     "Do you have any family history of major illnesses? If so, please list them.",
-    "Do you have health insurance? If so, please provide the name of the provider.",
-    "What is your emergency contact's name and phone number?",
+    "Do you have any history of mental health conditions, substance abuse, domestic violence or abuse, sexual abuse, PTSD, self-harm, eating disorders, sleep disorders, chronic pain, heart disease, or any other illnesses? If so, please describe them.",
+    "Do you smoke or use tobacco products? If so, how often?",
+    "Do you consume alcohol? If so, how often?",
+    "Do you use recreational drugs? If so, how often?",
+    "Do you have any dietary restrictions?",
+    "Have you ever been diagnosed or treated for a mental health condition?",
+    "Have you felt anxious, depressed, or hopeless in the last 2 weeks?",
+    "Have you ever tested positive for COVID-19?",
+    "Did you experience long-term symptoms such as fatigue, brain fog, or breathing issues?",
+    "Do you still experience any COVID-related symptoms today?",
+    "Do you have a primary care provider?",
+    "How long have you been seeing your primary care provider?",
+    "Are you following a care plan created with a doctor?",
+    "Are your medications reviewed regularly by a healthcare professional?",
+    "Do you feel confident managing your own health?",
+    "Do you need assistance from others to manage your health (e.g., emotional, financial, physical)?",
+    "Do you have insurance that covers your current health needs?"   
 ]
 
 @app.post("/reset")
@@ -200,30 +217,6 @@ This is the original intake data:\n\n{reference}\n\nNow the patient has this fol
         return {"answer": f"Error generating response: {str(e)}"}
 
 
-def get_symptom_analysis(symptoms: str, pain_rating: int) -> dict:
-    """Analyze symptoms and return structured health insights."""
-    result = process_symptoms(f"{symptoms} (Pain level: {pain_rating}/10)")
-
-    reasons = result.get("reasons", [])
-    life_threat = result.get("life_threatening", "Assessment unavailable")
-    risk_rating = result.get("risk_rating", 0)
-
-    status = (
-        "high" if risk_rating >= 7 else
-        "moderate" if risk_rating >= 4 else
-        "low"
-    )
-
-    return {
-        "reasons": reasons,
-        "life_threatening": life_threat,
-        "risk_rating": risk_rating,
-        "status": status,
-        "urgent": risk_rating >= 8
-    }
-
-
-
 
 @app.get("/summary")
 def get_summary():
@@ -266,15 +259,51 @@ def get_summary():
 def download_pdf():
     pdf = FPDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, "Patient History Summary", ln=True, align="C")
-    pdf.ln(10)
-    for i, answer in enumerate(answers):
-        q = all_questions[i] if i < len(all_questions) else "(Unknown Question)"
-        pdf.multi_cell(0, 10, f"Q: {q}\nA: {answer}\n")
+    try:
+        pdf.image("logo_clean.png", x=10, y=8, w=30)
+    except RuntimeError:
+        pass
+    pdf.set_xy(45, 10)
+    pdf.set_font("Helvetica", "B", 16)
+    pdf.set_text_color(0, 51, 102)
+    pdf.cell(0, 10, "Patient History Summary", ln=True, align="L")
+    pdf.ln(15)
+    pdf.set_font("Helvetica", "", 11)
+    pdf.set_text_color(80, 80, 80)
+    pdf.cell(0, 10, f"Generated on: {datetime.now().strftime('%B %d, %Y at %I:%M %p')}", ln=True)
+    pdf.ln(5)
+    sections = {
+        "Basic Information": range(1, 6),
+        "Medical Background": range(6, 14),
+        "Behavioral and Mental Health": range(14, 20),
+        "COVID-19 History": range(20, 23),
+        "Care Management": range(23, 27),
+        "Self-Management & Support": range(27, 30),
+        "Insurance": range(29, 30)
+    }
+    for section, q_range in sections.items():
+        pdf.set_font("Helvetica", "B", 13)
+        pdf.set_text_color(255, 255, 255)
+        pdf.set_fill_color(30, 144, 255)
+        pdf.cell(0, 10, f"  {section}", ln=True, fill=True)
+        pdf.set_draw_color(0, 0, 0)
+        pdf.set_line_width(0.8)
+        pdf.line(10, pdf.get_y(), 200, pdf.get_y())
+        pdf.ln(4)
+        pdf.set_font("Helvetica", "", 12)
+        for i in q_range:
+            if i >= len(all_questions): break
+            question = all_questions[i]
+            answer = answers[i] if i < len(answers) else "No response."
+            pdf.set_text_color(0)
+            pdf.multi_cell(0, 8, f"Q{i+1}: {question}")
+            pdf.set_text_color(80, 80, 80)
+            pdf.multi_cell(0, 8, f"A{i+1}: {answer}")
+            pdf.ln(3)
+        pdf.ln(4)
     file_path = "patient_summary.pdf"
     pdf.output(file_path)
-    return FileResponse(file_path, media_type="application/pdf", filename=file_path)
+    return FileResponse(path=file_path, media_type="application/pdf", filename="patient_summary.pdf")
 
 @app.post("/upload_doc")
 def upload_doc(file: UploadFile = File(...)):
@@ -292,7 +321,7 @@ def ask_doc(payload: dict):
     response = requests.post(
         "http://localhost:11434/api/generate",
         json={"model": "mistral", "prompt": system_prompt, "stream": True},
-        timeout=120,
+        timeout=180,
         stream=True
     )
     summary = ""

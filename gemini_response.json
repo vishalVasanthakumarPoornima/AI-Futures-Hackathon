@@ -1,0 +1,35 @@
+{
+  "candidates": [
+    {
+      "content": {
+        "parts": [
+          {
+            "text": "Since the provided patient data is insufficient to construct a meaningful medical summary, the following represents a placeholder based solely on the information provided. Further information is *required* to create a complete and accurate record.\n\n**Medical Summary**\n\n**1. Patient Demographics**\n\n*   Full Name: Insufficient data to determine. (Reported as \"f\")\n*   Date of Birth: Insufficient data to determine. (Reported as \"f\")\n\n**2. Medical History**\n\n*   Past Surgical History: Denies prior surgical interventions. (Reported as \"f\")\n*   Hospitalization History: Denies prior hospitalizations. (Reported as \"f\")\n*   Significant Medical History: Patient denies a history of mental health conditions, substance abuse, domestic violence or abuse, sexual abuse, PTSD, self-harm, eating disorders, sleep disorders, chronic pain, heart disease, or other significant illnesses. (Reported as \"f\")\n*   Mental Health History: Patient denies prior diagnosis or treatment for a mental health condition. (Reported as \"f\")\n\n**3. Current Medications**\n\n*   Insufficient data to determine. Medication review status reported as \"f\" (presumably indicating medications are *not* regularly reviewed), but the medications themselves are not listed.\n\n**4. Treatment Plan**\n\n*   Based on the limited information provided, a specific treatment plan cannot be formulated. Further assessment is required, including but not limited to: detailed history taking, physical examination, and potentially diagnostic testing.\n\n**Disclaimer:** This summary is based solely on the data provided, which is incomplete and may not represent an accurate reflection of the patient's medical status. This should *not* be used for clinical decision-making in lieu of a thorough medical evaluation.\n"
+          }
+        ],
+        "role": "model"
+      },
+      "finishReason": "STOP",
+      "avgLogprobs": -0.36269460099466733
+    }
+  ],
+  "usageMetadata": {
+    "promptTokenCount": 191,
+    "candidatesTokenCount": 356,
+    "totalTokenCount": 547,
+    "promptTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 191
+      }
+    ],
+    "candidatesTokensDetails": [
+      {
+        "modality": "TEXT",
+        "tokenCount": 356
+      }
+    ]
+  },
+  "modelVersion": "gemini-2.0-flash",
+  "responseId": "M7ZFaKmfDJu97dcPpqOWiA8"
+}
