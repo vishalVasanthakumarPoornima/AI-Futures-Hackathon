@@ -1,4 +1,4 @@
-Here is a beautifully structured and detailed `README.md` for your **Patient Intake Chat Assistant** project:
+**Patient Intake Chat Assistant** project:
 
 ---
 
@@ -24,7 +24,7 @@ Users can chat with an AI agent to:
 
 ## 📸 Project Screenshot
 
-![Patient Intake Chat](0a871fc7-e65c-40d4-b910-4def771377ba.png)
+![Patient Intake Chat](project_screenshot.png)
 
 ---
 
